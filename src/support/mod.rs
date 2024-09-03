@@ -17,6 +17,7 @@ mod proptest;
 mod pyo3;
 mod quickcheck;
 mod rand;
+mod rkyv;
 mod rlp;
 pub mod scale;
 mod serde;
