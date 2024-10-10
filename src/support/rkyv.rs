@@ -1,3 +1,5 @@
+#![cfg(feature = "rkyv")]
+
 use core::fmt::{Debug, Formatter};
 use std::hash::{Hash, Hasher};
 use crate::{ArchivedUint, Uint};

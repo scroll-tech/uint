@@ -24,7 +24,7 @@ resolver = "2"
 
 [workspace.package]
 edition = "2021"
-rust-version = "1.81"
+rust-version = "1.77"
 authors = ["Remco Bloemen <remco@wicked.ventures>"]
 license = "MIT"
 homepage = "https://github.com/recmo/uint"
