@@ -1,45 +1,52 @@
-//! Support for the [`rkyv`](https://crates.io/crates/rkyv) crate.
-
 #![cfg(feature = "rkyv")]
-#![cfg_attr(docsrs, doc(cfg(feature = "rkyv")))]
 
-use std::convert::Infallible;
-use crate::Uint;
-use rkyv::{Archive, Archived, CheckBytes, Deserialize, Fallible, Serialize};
+use core::fmt::{Debug, Formatter};
+use std::hash::{Hash, Hasher};
+use crate::{ArchivedUint, Uint};
 
-impl<const BITS: usize, const LIMBS: usize> Archive for Uint<BITS, LIMBS> {
-    type Archived = Uint<BITS, LIMBS>;
-    type Resolver = <[u64; LIMBS] as Archive>::Resolver;
-
-    #[inline]
-    unsafe fn resolve(&self, pos: usize, resolver: Self::Resolver, out: *mut Self::Archived) {
-        self.limbs.resolve(pos, resolver, out as *mut [u64; LIMBS]);
+impl<const BITS: usize, const LIMBS: usize> From<&ArchivedUint<BITS, LIMBS>> for Uint<BITS, LIMBS> {
+    fn from(archived: &ArchivedUint<BITS, LIMBS>) -> Self {
+        Uint::from_limbs(archived.limbs.map(|x| x.into()))
     }
 }
 
-impl<C: ?Sized, const BITS: usize, const LIMBS: usize> CheckBytes<C> for Uint<BITS, LIMBS>
-{
-    type Error = Infallible;
-    unsafe fn check_bytes<'a>(value: *const Self, _: &mut C) -> Result<&'a Self, Self::Error> {
-        Ok(&*value)
+impl<const BITS: usize, const LIMBS: usize> From<ArchivedUint<BITS, LIMBS>> for Uint<BITS, LIMBS> {
+    fn from(archived: ArchivedUint<BITS, LIMBS>) -> Self {
+        Uint::from_limbs(archived.limbs.map(|x| x.into()))
     }
 }
 
-impl<S: Fallible + ?Sized, const BITS: usize, const LIMBS: usize> Serialize<S> for Uint<BITS, LIMBS>
-{
-    #[inline]
-    fn serialize(&self, serializer: &mut S) -> Result<Self::Resolver, S::Error> {
-        Serialize::<S>::serialize(&self.limbs, serializer)
+
+impl<const BITS: usize, const LIMBS: usize> Debug for ArchivedUint<BITS, LIMBS> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
+        Debug::fmt(
+            &<Uint<BITS, LIMBS> as From<&ArchivedUint<BITS, LIMBS>>>:: from(self),
+            f
+        )
     }
 }
 
-impl<D: Fallible + ?Sized, const BITS: usize, const LIMBS: usize>
-    Deserialize<Uint<BITS, LIMBS>, D> for Archived<Uint<BITS, LIMBS>>
-{
-    #[inline]
-    fn deserialize(&self, deserializer: &mut D) -> Result<Uint<BITS, LIMBS>, D::Error> {
-        Ok(Uint {
-            limbs: Deserialize::<[u64; LIMBS], D>::deserialize(&self.limbs, deserializer)?,
-        })
+impl<const BITS: usize, const LIMBS: usize> Copy for ArchivedUint<BITS, LIMBS> {}
+
+impl<const BITS: usize, const LIMBS: usize> Clone for ArchivedUint<BITS, LIMBS> {
+    fn clone(&self) -> Self {
+        ArchivedUint {
+            limbs: self.limbs,
+        }
+    }
+}
+
+impl<const BITS: usize, const LIMBS: usize> PartialEq for ArchivedUint<BITS, LIMBS> {
+    fn eq(&self, other: &Self) -> bool {
+        self.limbs == other.limbs
+    }
+}
+
+impl<const BITS: usize, const LIMBS: usize> Eq for ArchivedUint<BITS, LIMBS> {}
+
+
+impl<const BITS: usize, const LIMBS: usize> Hash for ArchivedUint<BITS, LIMBS> {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.limbs.hash(state)
     }
 }
