@@ -1,8 +1,10 @@
 #![cfg(feature = "rkyv")]
 
-use core::fmt::{Debug, Formatter};
-use std::hash::{Hash, Hasher};
 use crate::{ArchivedUint, Uint};
+use core::{
+    fmt::{Debug, Formatter},
+    hash::{Hash, Hasher},
+};
 
 impl<const BITS: usize, const LIMBS: usize> From<&ArchivedUint<BITS, LIMBS>> for Uint<BITS, LIMBS> {
     fn from(archived: &ArchivedUint<BITS, LIMBS>) -> Self {
@@ -16,12 +18,11 @@ impl<const BITS: usize, const LIMBS: usize> From<ArchivedUint<BITS, LIMBS>> for 
     }
 }
 
-
 impl<const BITS: usize, const LIMBS: usize> Debug for ArchivedUint<BITS, LIMBS> {
     fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
         Debug::fmt(
-            &<Uint<BITS, LIMBS> as From<&ArchivedUint<BITS, LIMBS>>>:: from(self),
-            f
+            &<Uint<BITS, LIMBS> as From<&ArchivedUint<BITS, LIMBS>>>::from(self),
+            f,
         )
     }
 }
@@ -30,9 +31,7 @@ impl<const BITS: usize, const LIMBS: usize> Copy for ArchivedUint<BITS, LIMBS> {
 
 impl<const BITS: usize, const LIMBS: usize> Clone for ArchivedUint<BITS, LIMBS> {
     fn clone(&self) -> Self {
-        ArchivedUint {
-            limbs: self.limbs,
-        }
+        ArchivedUint { limbs: self.limbs }
     }
 }
 
@@ -43,7 +42,6 @@ impl<const BITS: usize, const LIMBS: usize> PartialEq for ArchivedUint<BITS, LIM
 }
 
 impl<const BITS: usize, const LIMBS: usize> Eq for ArchivedUint<BITS, LIMBS> {}
-
 
 impl<const BITS: usize, const LIMBS: usize> Hash for ArchivedUint<BITS, LIMBS> {
     fn hash<H: Hasher>(&self, state: &mut H) {
